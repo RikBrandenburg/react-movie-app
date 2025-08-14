@@ -1,6 +1,5 @@
 import './App.css';
 import { useDebounce } from 'react-use';
-import React from 'react';
 import { useState, useEffect } from 'react';
 import Search from './components/Search.jsx';
 import Spinner from './components/Spinner.jsx';
@@ -51,8 +50,9 @@ const App = () => {
       }
 
       setMovieList(data.results || []);
-      updateSearchCount();
-      console.log(data);
+      if (query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (error) {
       console.error('Error fetching movies:', error);
       setErrorMessage('Failed to fetch movies. Please try again later.');
