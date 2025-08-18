@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Search from './components/Search.jsx';
 import Spinner from './components/Spinner.jsx';
 import MovieCard from './components/MovieCard.jsx';
+import MovieDetails from './components/MovieDetails.jsx';
 import { updateSearchCount, getTrendingMovies } from './appwrite.js';
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
@@ -25,6 +26,7 @@ const App = () => {
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [isLoading, setIsloading] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
 
@@ -82,7 +84,6 @@ const App = () => {
   return (
     <main>
       <div className='pattern' />
-
       <div className='wrapper'>
         <header>
           <img src='./hero.png' alt='Hero Banner' />
@@ -93,36 +94,48 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
-        {trendingMovies.length > 0 && (
-          <section className='trending'>
-            <h2 className='text-left'>Trending Movies</h2>
+        {selectedMovie ? (
+          <MovieDetails
+            movie={selectedMovie}
+            onBack={() => setSelectedMovie(null)}
+          />
+        ) : (
+          <>
+            {trendingMovies.length > 0 && (
+              <section className='trending'>
+                <h2 className='text-left'>Trending Movies</h2>
+                <ul>
+                  {trendingMovies.map((movie, index) => (
+                    <li key={movie.$id}>
+                      <p>{index + 1}</p>
+                      <img src={movie.poster_url} alt={movie.title} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-            <ul>
-              {trendingMovies.map((movie, index) => (
-                <li key={movie.$id}>
-                  <p>{index + 1}</p>
-                  <img src={movie.poster_url} alt={movie.title} />
-                </li>
-              ))}
-            </ul>
-          </section>
+            <section className='all-movies'>
+              <h2 className='text-left'>All movies</h2>
+
+              {isLoading ? (
+                <Spinner />
+              ) : errorMessage ? (
+                <p className='text-red-500'>{errorMessage}</p>
+              ) : (
+                <ul className='text-left'>
+                  {movieList.map((movie) => (
+                    <MovieCard
+                      key={movie.id}
+                      movie={movie}
+                      onSelect={setSelectedMovie}
+                    />
+                  ))}
+                </ul>
+              )}
+            </section>
+          </>
         )}
-
-        <section className='all-movies'>
-          <h2 className='text-left'>All movies</h2>
-
-          {isLoading ? (
-            <Spinner />
-          ) : errorMessage ? (
-            <p className='text-red-500'>{errorMessage}</p>
-          ) : (
-            <ul className='text-left'>
-              {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
     </main>
   );
